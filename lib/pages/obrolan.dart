@@ -111,7 +111,9 @@ class _ObrolanState extends State<Obrolan> {
                                 roomName: userData['name'],
                                 participantId: participants.first),
                           ),
-                        ),
+                        ).whenComplete(() {
+                          setState(() {});
+                        }),
                       );
                     },
                   );

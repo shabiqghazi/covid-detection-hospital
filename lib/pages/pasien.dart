@@ -1,4 +1,5 @@
 import 'package:covid_detection_hospital/report_service.dart';
+import 'package:covid_detection_hospital/widgets/change_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -10,6 +11,7 @@ class Pasien extends StatefulWidget {
 }
 
 class _PasienState extends State<Pasien> {
+  String _status = "Belum diterima";
   @override
   void initState() {
     super.initState();
@@ -46,42 +48,25 @@ class _PasienState extends State<Pasien> {
                       .format(testHistory['createdAt'].toDate());
                   return ListTile(
                     onTap: () => showDialog<String>(
-                      context: context,
-                      builder: (BuildContext dialogcontext) => AlertDialog(
-                        title: const Text('Ubah Status Pasien'),
-                        content: Text(testHistory['status'] == 'Sudah ditangani'
-                            ? 'Belum ditangani'
-                            : 'Sudah ditangani'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(dialogcontext, 'Cancel'),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => {
-                              Navigator.pop(dialogcontext, 'Status changed'),
-                              ReportService().updateStatus(
-                                  testId,
-                                  testHistory['status'] == 'Sudah ditangani'
-                                      ? 'Belum ditangani'
-                                      : 'Sudah ditangani'),
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Berhasil ubah status'),
-                                  duration: Duration(
-                                      seconds:
-                                          3), // Duration the Snackbar will be visible
-                                  backgroundColor: Colors.lightGreen,
-                                ),
-                              ),
-                              setState(() {}),
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    ),
+                        context: context,
+                        builder: (BuildContext dialogcontext) => ChangeStatus(
+                            userId: testHistory['userId'],
+                            initStatus: testHistory['status'],
+                            testId: testId,
+                            callback: (val) {
+                              if (val == "status changed") {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Berhasil ubah status'),
+                                    duration: Duration(
+                                        seconds:
+                                            3), // Duration the Snackbar will be visible
+                                    backgroundColor: Colors.lightGreen,
+                                  ),
+                                );
+                                setState(() {});
+                              }
+                            })),
                     leading: const Icon(Icons.person),
                     title: Text('${user['name']}'),
                     subtitle: Text(testHistory['diseaseType']),

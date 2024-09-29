@@ -1,32 +1,48 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:covid_detection_hospital/report_service.dart';
+import 'package:covid_detection_hospital/widgets/change_status.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ObrolanRoom extends StatelessWidget {
+class ObrolanRoom extends StatefulWidget {
   final String roomId;
   final String roomName;
   final String participantId;
-  final TextEditingController _messageController = TextEditingController();
-  final user = FirebaseAuth.instance.currentUser!;
 
   ObrolanRoom(
       {required this.roomId,
       required this.roomName,
       required this.participantId});
 
+  @override
+  State<ObrolanRoom> createState() => _ObrolanRoomState();
+}
+
+class _ObrolanRoomState extends State<ObrolanRoom> {
+  final TextEditingController _messageController = TextEditingController();
+  String _status = "";
+  String _reportId = "";
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  final user = FirebaseAuth.instance.currentUser!;
+
   void _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       await FirebaseFirestore.instance
           .collection('chatRooms')
-          .doc(roomId)
+          .doc(widget.roomId)
           .update({
         'lastMessage': _messageController.text,
         'address': FieldValue.serverTimestamp(),
       });
       await FirebaseFirestore.instance
           .collection('chatRooms')
-          .doc(roomId)
+          .doc(widget.roomId)
           .collection('messages')
           .add({
         'text': _messageController.text,
@@ -47,7 +63,7 @@ class ObrolanRoom extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              roomName,
+              widget.roomName,
               style: const TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 15,
@@ -55,7 +71,8 @@ class ObrolanRoom extends StatelessWidget {
               ),
             ),
             FutureBuilder(
-                future: ReportService().getStatus(participantId, user.uid),
+                future:
+                    ReportService().getStatus(widget.participantId, user.uid),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(
@@ -65,28 +82,29 @@ class ObrolanRoom extends StatelessWidget {
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
                   }
-                  final status = snapshot.data['status'];
+                  _status = snapshot.data['status'];
+                  _reportId = snapshot.data['id'];
                   return Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: status == 'Sudah ditangani'
+                        color: _status == 'Sudah ditangani'
                             ? Colors.lightGreen[200]
                             : Colors.red[200],
                         boxShadow: [
                           BoxShadow(
-                              color: status == 'Sudah ditangani'
+                              color: _status == 'Sudah ditangani'
                                   ? Colors.lightGreen
                                   : Colors.redAccent,
                               spreadRadius: 1),
                         ],
                       ),
                       child: Text(
-                        status,
+                        _status,
                         style: TextStyle(
-                            color: status == 'Sudah ditangani'
+                            color: _status == 'Sudah ditangani'
                                 ? Colors.green[900]
                                 : Colors.red[900],
                             fontSize: 10.0),
@@ -109,15 +127,34 @@ class ObrolanRoom extends StatelessWidget {
                 });
               },
               itemBuilder: (BuildContext context) {
-                return const [
+                return [
                   PopupMenuItem<String>(
                     value: 'accept',
-                    child: Row(
+                    child: const Row(
                       children: [
                         SizedBox(width: 8),
                         Text('Terima Penanganan'),
                       ],
                     ),
+                    onTap: () => showDialog<String>(
+                        context: context,
+                        builder: (BuildContext dialogcontext) => ChangeStatus(
+                            userId: widget.participantId,
+                            initStatus: _status,
+                            testId: _reportId,
+                            callback: (val) {
+                              print(val);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Berhasil ubah status'),
+                                  duration: Duration(
+                                      seconds:
+                                          3), // Duration the Snackbar will be visible
+                                  backgroundColor: Colors.lightGreen,
+                                ),
+                              );
+                              setState(() {});
+                            })),
                   ),
                 ];
               },
@@ -131,7 +168,7 @@ class ObrolanRoom extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('chatRooms')
-                  .doc(roomId)
+                  .doc(widget.roomId)
                   .collection('messages')
                   .orderBy('timestamp', descending: true)
                   .snapshots(),

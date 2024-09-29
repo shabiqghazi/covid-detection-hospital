@@ -12,14 +12,6 @@ class Profil extends StatefulWidget {
   State<Profil> createState() => _ProfilState();
 }
 
-// class Profilll {
-//   String name;
-//   String address;
-//   GeoPoint geoPoint;
-
-//   Profilll({required this.name, required this.address, required this.geoPoint});
-// }
-
 class _ProfilState extends State<Profil> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
