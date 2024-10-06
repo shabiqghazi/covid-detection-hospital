@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:covid_detection_hospital/auth_services.dart';
 import 'package:covid_detection_hospital/pages/obrolan.dart';
 import 'package:covid_detection_hospital/pages/pasien.dart';
+import 'package:covid_detection_hospital/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -16,13 +17,21 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   final AuthServices _authServices = AuthServices();
-  User? user = FirebaseAuth.instance.currentUser;
+  User? userAccount = FirebaseAuth.instance.currentUser;
+  UserModel user = UserModel();
   Position? _currentPosition;
 
   @override
   void initState() {
     _requestPermissions();
     super.initState();
+  }
+
+  Future<void> fetchData() async {
+    UserModel fetchUser = await AuthServices().getProfile(userAccount!.uid);
+    setState(() {
+      user = fetchUser;
+    });
   }
 
   // Meminta izin akses mikrofon
@@ -62,9 +71,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
 
     if (confirmed == true) {
-      await _authServices.signOut();
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/login');
+      if (!context.mounted) return;
+      await _authServices.signOut(context);
     }
   }
 
@@ -93,7 +101,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           appBar: AppBar(
             backgroundColor: Colors.teal,
             title: Text(
-              user != null ? 'Halo, ${user!.displayName}' : 'Hello, User!',
+              user.name?.isNotEmpty == true
+                  ? 'Halo, ${user.name}!'
+                  : userAccount?.displayName != null
+                      ? 'Halo, ${userAccount!.displayName}!'
+                      : 'Halo, ',
               style: const TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 15,
@@ -108,9 +120,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     // Gunakan Future.microtask untuk menangani kode asinkron
                     Future.microtask(() async {
                       if (value == 'profile') {
-                        // Aksi untuk Profile
-                        Navigator.pushNamed(context, '/profil',
-                            arguments: user);
+                        Navigator.pushNamed(
+                          context,
+                          '/profile',
+                          arguments: userAccount!.uid,
+                        );
                       } else if (value == 'logout') {
                         _confirmLogout(context);
                       }
@@ -140,11 +154,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                     ];
                   },
-                  child: user != null
+                  child: userAccount!.photoURL != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(50),
                           child: Image.network(
-                            user!.photoURL!,
+                            userAccount!.photoURL!,
                             width: 30,
                           ),
                         )
@@ -174,7 +188,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             child: TabBarView(
               children: <Widget>[
                 Obrolan(
-                  user: user,
+                  user: userAccount,
                 ),
                 const Pasien(),
               ],

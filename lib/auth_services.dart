@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:covid_detection_hospital/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class Profilll {
@@ -16,22 +18,20 @@ class AuthServices {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
       clientId:
           '293905643672-qtcctr5l2mk4l4t8vl4evi5un4vinis6.apps.googleusercontent.com');
-  Future<Map<String, dynamic>> getProfile(userUid) async {
-    try {
-      print("Attempting to connect to Firestore...");
-      print(userUid);
-      DocumentSnapshot documentSnapshot =
-          await _firestore.collection('users').doc(userUid).get();
-      print("Connection successful. User found");
-      print(documentSnapshot.data());
-      // List to hold combined data (test_history + user)
-      if (documentSnapshot.exists) {
-        return documentSnapshot.data() as Map<String, dynamic>;
-      }
-    } catch (e) {
-      print("Error connecting to Firestore: $e");
-    }
-    return {};
+  void showSnackbarMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
+  Future<UserModel> getProfile(userUid) async {
+    final docRef = _firestore.collection("users").doc(userUid);
+    DocumentSnapshot doc = await docRef.get();
+    print("wkwkw");
+    print(doc.data());
+    return UserModel.fromJson(doc.data() as Map<String, dynamic>);
   }
 
   Future<void> updateProfile(userUid, data) async {
@@ -49,31 +49,76 @@ class AuthServices {
     }
   }
 
-  Future<User?> signInWithGoogle() async {
+  Future createUser(uid, email, name) async {
+    final data = UserModel(
+      name: name,
+      address: '',
+      role: 'user',
+      geoPoint: GeoPoint(1.0, 1.0),
+      createdAt: DateTime.now().toString(),
+    );
+
+    _firestore.collection("users").doc(uid).set(data.toJson()).then((_) {
+      return 'success';
+    }).catchError((e) {
+      return 'failed';
+    });
+  }
+
+  Future createUserWithEmailAndPassword(
+      BuildContext context, emailAddress, password, name) async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser!.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      final userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailAddress,
+        password: password,
       );
 
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-      return userCredential.user;
+      await createUser(
+        userCredential.user!.uid,
+        userCredential.user!.email,
+        name,
+      );
+
+      if (!context.mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        showSnackbarMessage(context, 'Password terlalu lemah.');
+      } else if (e.code == 'email-already-in-use') {
+        showSnackbarMessage(
+            context, 'Email telah terdaftar. Gunakan email lain!');
+      }
     } catch (e) {
       print(e);
-      return null;
     }
   }
 
-  Future<void> signOut() async {
+  Future signInWithEmailAndPassword(
+      BuildContext context, emailAddress, password) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailAddress,
+        password: password,
+      );
+
+      if (!context.mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-credential') {
+        showSnackbarMessage(context, 'Email atau password salah.');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future signOut(BuildContext context) async {
     try {
       await _googleSignIn.signOut();
       await _auth.signOut();
+      if (!context.mounted) return;
+      Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
       print('Error signing out: $e');
     }

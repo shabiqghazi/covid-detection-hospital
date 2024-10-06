@@ -37,3 +37,4 @@ flutter:
   assets:
     - images/mic_permission.jpeg
     - images/loc_permission.jpeg
+    - images/logo.png

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:covid_detection_hospital/auth_services.dart';
+import 'package:covid_detection_hospital/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -30,13 +31,14 @@ class _ProfilState extends State<Profil> {
 
   Future<void> _fetchProfile() async {
     try {
-      final User arguments = ModalRoute.of(context)?.settings.arguments as User;
-      AuthServices().getProfile(arguments.uid).then((profile) {
-        _nameController.text = profile['name'];
-        _addressController.text = profile['address'];
+      final String arguments =
+          ModalRoute.of(context)?.settings.arguments as String;
+      AuthServices().getProfile(arguments).then((profile) {
+        _nameController.text = profile.name!;
+        _addressController.text = profile.address!;
 
-        if (profile['geoPoint'] != GeoPoint(0.0, 0.0)) {
-          GeoPoint location = profile['geoPoint'];
+        if (profile.geoPoint != const GeoPoint(0.0, 0.0)) {
+          GeoPoint location = profile.geoPoint!;
           setState(() {
             _location = location;
             isLoading = false;
@@ -175,7 +177,7 @@ class _ProfilState extends State<Profil> {
                           'geoPoint':
                               GeoPoint(_location.latitude, _location.longitude)
                         };
-                        AuthServices().updateProfile(arguments.uid, data);
+                        AuthServices().updateProfile(arguments, data);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Berhasil ubah profil'),

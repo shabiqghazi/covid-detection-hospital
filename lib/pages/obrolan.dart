@@ -50,7 +50,7 @@ class _ObrolanState extends State<Obrolan> {
                       var userData =
                           userSnapshot.data!.data() as Map<String, dynamic>;
                       String formattedDate = DateFormat('dd/MM/yy')
-                          .format(room['lastUpdates'].toDate());
+                          .format(room['lastUpdate'].toDate());
                       return ListTile(
                         leading: const Icon(Icons.person),
                         title: Row(

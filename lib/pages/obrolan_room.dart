@@ -38,7 +38,7 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
           .doc(widget.roomId)
           .update({
         'lastMessage': _messageController.text,
-        'address': FieldValue.serverTimestamp(),
+        'lastUpdate': FieldValue.serverTimestamp(),
       });
       await FirebaseFirestore.instance
           .collection('chatRooms')
