@@ -11,7 +11,6 @@ class Pasien extends StatefulWidget {
 }
 
 class _PasienState extends State<Pasien> {
-  String _status = "Belum diterima";
   @override
   void initState() {
     super.initState();

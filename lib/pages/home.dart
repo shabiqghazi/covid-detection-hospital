@@ -5,8 +5,6 @@ import 'package:covid_detection_hospital/pages/pasien.dart';
 import 'package:covid_detection_hospital/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
