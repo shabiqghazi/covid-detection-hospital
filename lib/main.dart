@@ -1,4 +1,5 @@
 import 'package:covid_detection_hospital/firebase_options.dart';
+import 'package:covid_detection_hospital/pages/about.dart';
 import 'package:covid_detection_hospital/pages/home.dart';
 import 'package:covid_detection_hospital/pages/login.dart';
 import 'package:covid_detection_hospital/pages/profil.dart';
@@ -16,13 +17,11 @@ void main() async {
 
   // Inisialisasi Firebase
   try {
-    print("Initializing Firebase...");
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print("Firebase initialized successfully.");
   } catch (e) {
-    print("Error initializing Firebase: $e");
+    rethrow;
   }
 
   runApp(const MyApp());
@@ -41,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const Home(),
         '/login': (context) => Login(),
         '/profile': (context) => const Profil(),
+        '/about': (context) => const About(),
       },
     );
   }

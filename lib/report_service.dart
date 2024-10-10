@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReportService {
+  User? userAccount = FirebaseAuth.instance.currentUser;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Future<void> updateStatus(id, status) async {
     try {
@@ -8,21 +10,17 @@ class ReportService {
         'status': status,
       });
     } catch (e) {
-      print("Error connecting to Firestore: $e");
+      rethrow;
     }
   }
 
   Future<dynamic> getStatus(userId, hospitalId) async {
     try {
-      print(userId + " - " + hospitalId);
-      print("Attempting to connect to Firestore...");
       QuerySnapshot querySnapshot = await _firestore
           .collection('reports')
           .where(Filter.and(Filter('userId', isEqualTo: userId),
               Filter('hospitalId', isEqualTo: hospitalId)))
           .get();
-      print(
-          "Connection successful. Document count: ${querySnapshot.docs.length}");
       // List to hold combined data (test_history + user)
       if (querySnapshot.docs.isNotEmpty) {
         return {
@@ -31,7 +29,7 @@ class ReportService {
         };
       }
     } catch (e) {
-      print("Error connecting to Firestore: $e");
+      rethrow;
     }
     // Get data from docs and convert them to List
     return [];
@@ -39,11 +37,10 @@ class ReportService {
 
   Future<List<dynamic>> getDocs() async {
     try {
-      print("Attempting to connect to Firestore...");
-      QuerySnapshot querySnapshot =
-          await _firestore.collection('reports').get();
-      print(
-          "Connection successful. Document count: ${querySnapshot.docs.length}");
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('reports')
+          .where('hospitalId', isEqualTo: userAccount!.uid)
+          .get();
       // List to hold combined data (test_history + user)
       List<dynamic> combinedData = [];
 
@@ -71,9 +68,7 @@ class ReportService {
       }
       return combinedData;
     } catch (e) {
-      print("Error connecting to Firestore: $e");
+      rethrow;
     }
-    // Get data from docs and convert them to List
-    return [];
   }
 }

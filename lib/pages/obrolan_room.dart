@@ -3,6 +3,7 @@ import 'package:covid_detection_hospital/report_service.dart';
 import 'package:covid_detection_hospital/widgets/change_status.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ObrolanRoom extends StatefulWidget {
   final String roomId;
@@ -27,6 +28,12 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    FirebaseFirestore.instance
+        .collection('chatRooms')
+        .doc(widget.roomId)
+        .update({
+      'isHospitalRead': true,
+    });
   }
 
   final user = FirebaseAuth.instance.currentUser!;
@@ -39,6 +46,7 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
           .update({
         'lastMessage': _messageController.text,
         'lastUpdate': FieldValue.serverTimestamp(),
+        'lastParticipant': user.uid,
       });
       await FirebaseFirestore.instance
           .collection('chatRooms')
@@ -46,6 +54,7 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
           .collection('messages')
           .add({
         'text': _messageController.text,
+        'type': "text",
         'sender': user.uid,
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false
@@ -143,7 +152,6 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                             initStatus: _status,
                             testId: _reportId,
                             callback: (val) {
-                              print(val);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Berhasil ubah status'),
@@ -178,69 +186,120 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                     child: Text('Error: ${snapshot.error}'),
                   );
                 }
+                final screenHeight = MediaQuery.of(context).size.height;
+                final screenWidth = MediaQuery.of(context).size.width;
                 if (!snapshot.hasData) return const CircularProgressIndicator();
-                return ListView.builder(
-                  reverse: true,
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot message = snapshot.data!.docs[index];
-                    return FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(message['sender'])
-                          .get(),
-                      builder: (context, userSnapshot) {
-                        if (!userSnapshot.hasData) {
-                          return const SizedBox.shrink();
-                        }
-                        var userData =
-                            userSnapshot.data!.data() as Map<String, dynamic>;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 8.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            textDirection: userSnapshot.data!.id == user.uid
-                                ? TextDirection.rtl
-                                : TextDirection.ltr,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Icon(
-                                  Icons.person,
-                                ),
-                              ),
-                              Column(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    userSnapshot.data!.id == user.uid
-                                        ? 'You'
-                                        : userData['name'],
-                                    style: TextStyle(
-                                        fontSize: 10.0,
-                                        fontWeight: FontWeight.w200,
-                                        color: Colors.grey[700]),
+                return Padding(
+                  padding: EdgeInsets.only(top: 5, bottom: screenHeight * 0.08),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          reverse: true,
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot message =
+                                snapshot.data!.docs[index];
+                            DateTime timestamp =
+                                (message['timestamp']! as Timestamp).toDate();
+                            String formattedDate =
+                                DateFormat('d MMMM yyyy').format(timestamp);
+                            String formattedTime =
+                                '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+                            return Row(
+                              mainAxisAlignment: message['sender'] != user.uid
+                                  ? MainAxisAlignment.start
+                                  : MainAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 3,
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4.0),
-                                    child: Text(
-                                      message['text'],
-                                      style: const TextStyle(),
+                                  child: Container(
+                                    constraints: BoxConstraints(
+                                      maxWidth: screenWidth * 0.8,
                                     ),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
+                                    decoration: BoxDecoration(
+                                      color: message['type'] == 'text'
+                                          ? Colors.teal
+                                          : Colors.blue[700],
+                                      borderRadius: BorderRadius.circular(13),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 5),
+                                      child: message['type'] == 'text'
+                                          ? Text(
+                                              message['text'],
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                              ),
+                                            )
+                                          : Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          bottom: 3),
+                                                  child: Text(
+                                                    'Dim: ${double.parse(message['dimension']!).toStringAsFixed(2)}  Size: ${double.parse(message['size']!).toStringAsFixed(2)}  Dispersi: ${double.parse(message['dispersi']!).toStringAsFixed(2)}',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    Text(
+                                                      formattedTime,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 1,
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.white,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 7),
+                                                    Text(
+                                                      formattedDate,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 1,
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.white,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

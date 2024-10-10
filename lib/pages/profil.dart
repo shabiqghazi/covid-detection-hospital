@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:covid_detection_hospital/auth_services.dart';
-import 'package:covid_detection_hospital/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -46,7 +45,7 @@ class _ProfilState extends State<Profil> {
         }
       });
     } catch (e) {
-      print("Error fetching data: $e");
+      rethrow;
     }
   }
 

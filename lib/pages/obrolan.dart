@@ -100,8 +100,55 @@ class _ObrolanState extends State<Obrolan> {
                                 }),
                           ],
                         ),
-                        subtitle:
-                            Text(room['lastMessage'] ?? 'No messages yet'),
+                        subtitle: Row(
+                          children: [
+                            room['lastParticipant'] == widget.user!.uid
+                                ? room['isHospitalRead'] == true
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.blue,
+                                        size: 18,
+                                      )
+                                    : const Icon(
+                                        Icons.check,
+                                        color: Colors.grey,
+                                        size: 18,
+                                      )
+                                : room['isUserRead'] == true
+                                    ? const SizedBox()
+                                    : const Icon(
+                                        Icons.notifications_rounded,
+                                        color: Colors.green,
+                                        size: 18,
+                                      ),
+                            room['lastMessage'] == 'You sent your history'
+                                ? Text(
+                                    room['lastMessage'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  )
+                                : Expanded(
+                                    child: Text(
+                                      room['lastMessage'].length > 20
+                                          ? '${room['lastMessage'].substring(0, 20)}...'
+                                          : room['lastMessage'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        color: room['lastParticipant'] !=
+                                                    widget.user!.uid &&
+                                                room['isUserRead'] == false
+                                            ? Colors.green
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
                         trailing: Text(formattedDate),
                         onTap: () => Navigator.push(
                           context,

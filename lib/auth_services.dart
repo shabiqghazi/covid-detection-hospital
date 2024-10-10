@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:covid_detection_hospital/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class Profilll {
   String name;
@@ -15,9 +14,6 @@ class Profilll {
 class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-      clientId:
-          '293905643672-qtcctr5l2mk4l4t8vl4evi5un4vinis6.apps.googleusercontent.com');
   void showSnackbarMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -29,8 +25,6 @@ class AuthServices {
   Future<UserModel> getProfile(userUid) async {
     final docRef = _firestore.collection("users").doc(userUid);
     DocumentSnapshot doc = await docRef.get();
-    print("wkwkw");
-    print(doc.data());
     return UserModel.fromJson(doc.data() as Map<String, dynamic>);
   }
 
@@ -38,14 +32,13 @@ class AuthServices {
     try {
       double latitude = data['geoPoint'].latitude;
       double longitude = data['geoPoint'].longitude;
-      print(latitude + longitude);
       await _firestore.collection('users').doc(userUid).update({
         'name': data['name'],
         'address': data['address'],
         'geoPoint': GeoPoint(latitude, longitude), // Store as GeoPoint
       });
     } catch (e) {
-      print("Error connecting to Firestore: $e");
+      rethrow;
     }
   }
 
@@ -90,7 +83,7 @@ class AuthServices {
             context, 'Email telah terdaftar. Gunakan email lain!');
       }
     } catch (e) {
-      print(e);
+      rethrow;
     }
   }
 
@@ -109,18 +102,17 @@ class AuthServices {
         showSnackbarMessage(context, 'Email atau password salah.');
       }
     } catch (e) {
-      print(e);
+      rethrow;
     }
   }
 
   Future signOut(BuildContext context) async {
     try {
-      await _googleSignIn.signOut();
       await _auth.signOut();
       if (!context.mounted) return;
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
-      print('Error signing out: $e');
+      rethrow;
     }
   }
 }

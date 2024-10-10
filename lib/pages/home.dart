@@ -19,30 +19,20 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   final AuthServices _authServices = AuthServices();
   User? userAccount = FirebaseAuth.instance.currentUser;
   UserModel user = UserModel();
-  Position? _currentPosition;
 
   @override
   void initState() {
-    _requestPermissions();
     super.initState();
   }
 
   Future<void> fetchData() async {
     UserModel fetchUser = await AuthServices().getProfile(userAccount!.uid);
+    if (fetchUser.role != "hospital") {
+      await _confirmLogout(context);
+    }
     setState(() {
       user = fetchUser;
     });
-  }
-
-  // Meminta izin akses mikrofon
-  Future<void> _requestPermissions() async {
-    var location = await Permission.location.request();
-
-    if (location != PermissionStatus.granted) {
-      await openAppSettings();
-    } else {
-      await _getCurrentLocation();
-    }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -76,21 +66,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
   }
 
-  // Mengambil lokasi saat ini
-  Future<void> _getCurrentLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      setState(() {
-        _currentPosition = position;
-      });
-      print('Posisi saat ini: $_currentPosition');
-    } catch (e) {
-      print('Gagal mendapatkan lokasi: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -119,21 +94,26 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   onSelected: (value) {
                     // Gunakan Future.microtask untuk menangani kode asinkron
                     Future.microtask(() async {
-                      if (value == 'profile') {
+                      if (value == '/profile') {
                         Navigator.pushNamed(
                           context,
-                          '/profile',
+                          value,
                           arguments: userAccount!.uid,
                         );
                       } else if (value == 'logout') {
                         _confirmLogout(context);
+                      } else {
+                        Navigator.pushNamed(
+                          context,
+                          "$value",
+                        );
                       }
                     });
                   },
                   itemBuilder: (BuildContext context) {
                     return const [
                       PopupMenuItem<String>(
-                        value: 'profile',
+                        value: '/profile',
                         child: Row(
                           children: [
                             Icon(Icons.person),
@@ -149,6 +129,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             Icon(Icons.logout),
                             SizedBox(width: 8),
                             Text('Logout'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: '/about',
+                        child: Row(
+                          children: [
+                            Icon(Icons.info),
+                            SizedBox(width: 8),
+                            Text('Tentang'),
                           ],
                         ),
                       ),
