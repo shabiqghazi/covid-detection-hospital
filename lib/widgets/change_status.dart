@@ -44,9 +44,9 @@ class _ChangeStatusState extends State<ChangeStatus> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           ListTile(
-            title: const Text('Belum diterima'),
+            title: const Text('Menunggu persetujuan'),
             leading: Radio(
-              value: 'Belum diterima',
+              value: 'a',
               groupValue: reportStatus,
               onChanged: (value) {
                 setState(() {
@@ -56,21 +56,9 @@ class _ChangeStatusState extends State<ChangeStatus> {
             ),
           ),
           ListTile(
-            title: const Text('Belum ditangani'),
+            title: const Text('Bantuan diterima'),
             leading: Radio(
-              value: 'Belum ditangani',
-              groupValue: reportStatus,
-              onChanged: (value) {
-                setState(() {
-                  reportStatus = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Sudah ditangani'),
-            leading: Radio(
-              value: 'Sudah ditangani',
+              value: 'b',
               groupValue: reportStatus,
               onChanged: (value) {
                 setState(() {
@@ -82,7 +70,19 @@ class _ChangeStatusState extends State<ChangeStatus> {
           ListTile(
             title: const Text('Selesai'),
             leading: Radio(
-              value: 'Selesai',
+              value: 'c',
+              groupValue: reportStatus,
+              onChanged: (value) {
+                setState(() {
+                  reportStatus = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Tolak'),
+            leading: Radio(
+              value: 'c',
               groupValue: reportStatus,
               onChanged: (value) {
                 setState(() {

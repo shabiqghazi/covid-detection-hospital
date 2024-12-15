@@ -69,7 +69,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: DefaultTabController(
-        length: 3,
+        length: 2,
         child: Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.teal,
@@ -148,6 +148,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           child: Image.network(
                             userAccount!.photoURL!,
                             width: 30,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.account_circle,
+                                size: 30,
+                                color: Colors.white,
+                              );
+                            },
                           ),
                         )
                       : const Icon(

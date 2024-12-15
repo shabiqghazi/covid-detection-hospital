@@ -43,21 +43,21 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
       await FirebaseFirestore.instance
           .collection('chatRooms')
           .doc(widget.roomId)
-          .update({
-        'lastMessage': _messageController.text,
-        'lastUpdate': FieldValue.serverTimestamp(),
-        'lastParticipant': user.uid,
-      });
-      await FirebaseFirestore.instance
-          .collection('chatRooms')
-          .doc(widget.roomId)
           .collection('messages')
           .add({
         'text': _messageController.text,
         'type': "text",
         'sender': user.uid,
-        'timestamp': FieldValue.serverTimestamp(),
-        'isRead': false
+        'timestamp': DateTime.now(),
+      });
+      await FirebaseFirestore.instance
+          .collection('chatRooms')
+          .doc(widget.roomId)
+          .update({
+        'lastMessage': _messageController.text,
+        'lastUpdate': DateTime.now(),
+        'lastParticipant': user.uid,
+        'isUserRead': false,
       });
       _messageController.clear();
     }
@@ -84,14 +84,23 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                     ReportService().getStatus(widget.participantId, user.uid),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: ${snapshot.error}'),
+                    return const Center(
+                      child: SizedBox(),
                     );
                   }
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
                   }
-                  _status = snapshot.data['status'];
+                  _status = snapshot.data['status'] == 'a'
+                      ? 'Menunggu Persetujuan'
+                      : snapshot.data['status'] == 'b'
+                          ? 'Bantuan diterima'
+                          : '';
+                  if (_status == '') {
+                    return const Center(
+                      child: SizedBox(),
+                    );
+                  }
                   _reportId = snapshot.data['id'];
                   return Padding(
                     padding: const EdgeInsets.only(left: 8.0),
@@ -99,12 +108,12 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: _status == 'Sudah ditangani'
+                        color: _status == 'Bantuan diterima'
                             ? Colors.lightGreen[200]
                             : Colors.red[200],
                         boxShadow: [
                           BoxShadow(
-                              color: _status == 'Sudah ditangani'
+                              color: _status == 'Bantuan diterima'
                                   ? Colors.lightGreen
                                   : Colors.redAccent,
                               spreadRadius: 1),
@@ -113,7 +122,7 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                       child: Text(
                         _status,
                         style: TextStyle(
-                            color: _status == 'Sudah ditangani'
+                            color: _status == 'Bantuan diterima'
                                 ? Colors.green[900]
                                 : Colors.red[900],
                             fontSize: 10.0),
@@ -124,50 +133,55 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
           ],
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: PopupMenuButton<String>(
-              onSelected: (value) {
-                // Gunakan Future.microtask untuk menangani kode asinkron
-                Future.microtask(() async {
-                  if (value == 'accept') {
-                    // Aksi untuk Profile
-                  }
-                });
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<String>(
-                    value: 'accept',
-                    child: const Row(
-                      children: [
-                        SizedBox(width: 8),
-                        Text('Terima Penanganan'),
-                      ],
-                    ),
-                    onTap: () => showDialog<String>(
-                        context: context,
-                        builder: (BuildContext dialogcontext) => ChangeStatus(
-                            userId: widget.participantId,
-                            initStatus: _status,
-                            testId: _reportId,
-                            callback: (val) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Berhasil ubah status'),
-                                  duration: Duration(
-                                      seconds:
-                                          3), // Duration the Snackbar will be visible
-                                  backgroundColor: Colors.lightGreen,
-                                ),
-                              );
-                              setState(() {});
-                            })),
+          _status == ''
+              ? Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: PopupMenuButton<String>(
+                    onSelected: (value) {
+                      // Gunakan Future.microtask untuk menangani kode asinkron
+                      Future.microtask(() async {
+                        if (value == 'accept') {
+                          // Aksi untuk Profile
+                        }
+                      });
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        PopupMenuItem<String>(
+                          value: 'accept',
+                          child: const Row(
+                            children: [
+                              SizedBox(width: 8),
+                              Text('Ubah Status'),
+                            ],
+                          ),
+                          onTap: () => showDialog<String>(
+                              context: context,
+                              builder: (BuildContext dialogcontext) =>
+                                  ChangeStatus(
+                                      userId: widget.participantId,
+                                      initStatus: _status,
+                                      testId: _reportId,
+                                      callback: (val) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('Berhasil ubah status'),
+                                            duration: Duration(
+                                                seconds:
+                                                    3), // Duration the Snackbar will be visible
+                                            backgroundColor: Colors.lightGreen,
+                                          ),
+                                        );
+                                        setState(() {});
+                                      })),
+                        ),
+                      ];
+                    },
                   ),
-                ];
-              },
-            ),
-          ),
+                )
+              : const SizedBox(),
         ],
       ),
       body: Column(
@@ -182,8 +196,8 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
+                  return const Center(
+                    child: SizedBox(),
                   );
                 }
                 final screenHeight = MediaQuery.of(context).size.height;
@@ -222,9 +236,11 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                                       maxWidth: screenWidth * 0.8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: message['type'] == 'text'
-                                          ? Colors.teal
-                                          : Colors.blue[700],
+                                      color: message['type'] != 'text'
+                                          ? Colors.blue[800]
+                                          : message['sender'] == user.uid
+                                              ? Colors.teal
+                                              : Colors.lightBlue[600],
                                       borderRadius: BorderRadius.circular(13),
                                     ),
                                     child: Padding(
@@ -246,15 +262,29 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
                                                   padding:
                                                       const EdgeInsets.only(
                                                           bottom: 3),
-                                                  child: Text(
-                                                    'Dim: ${double.parse(message['dimension']!).toStringAsFixed(2)}  Size: ${double.parse(message['size']!).toStringAsFixed(2)}  Dispersi: ${double.parse(message['dispersi']!).toStringAsFixed(2)}',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 13,
-                                                    ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Result: ${message['status']}',
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'Dim: ${double.parse(message['dimension']!).toStringAsFixed(2)}  Size: ${double.parse(message['size']!).toStringAsFixed(2)}  Dispersi: ${double.parse(message['dispersi']!).toStringAsFixed(2)}',
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        maxLines: 1,
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                                 Row(
@@ -304,24 +334,24 @@ class _ObrolanRoomState extends State<ObrolanRoom> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(labelText: 'Message'),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
-                ),
-              ],
-            ),
-          ),
         ],
+      ),
+      bottomSheet: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                decoration: const InputDecoration(labelText: 'Message'),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: _sendMessage,
+            ),
+          ],
+        ),
       ),
     );
   }

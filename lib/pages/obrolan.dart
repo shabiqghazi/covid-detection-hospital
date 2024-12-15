@@ -61,14 +61,23 @@ class _ObrolanState extends State<Obrolan> {
                                     participants.first, widget.user!.uid),
                                 builder: (context, snapshot) {
                                   if (snapshot.hasError) {
-                                    return Center(
-                                      child: Text('Error: ${snapshot.error}'),
+                                    return const Center(
+                                      child: SizedBox(),
                                     );
                                   }
                                   if (!snapshot.hasData) {
                                     return const CircularProgressIndicator();
                                   }
-                                  final status = snapshot.data['status'];
+                                  final status = snapshot.data['status'] == 'a'
+                                      ? 'Menunggu persetujuan'
+                                      : snapshot.data['status'] == 'b'
+                                          ? 'Bantuan diterima'
+                                          : '';
+                                  if (status == '') {
+                                    return const Center(
+                                      child: SizedBox(),
+                                    );
+                                  }
                                   return Padding(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Container(
@@ -76,21 +85,22 @@ class _ObrolanState extends State<Obrolan> {
                                           horizontal: 8.0),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(10),
-                                        color: status == 'Sudah ditangani'
+                                        color: status == 'Bantuan diterima'
                                             ? Colors.lightGreen[200]
                                             : Colors.red[200],
                                         boxShadow: [
                                           BoxShadow(
-                                              color: status == 'Sudah ditangani'
-                                                  ? Colors.lightGreen
-                                                  : Colors.redAccent,
+                                              color:
+                                                  status == 'Bantuan diterima'
+                                                      ? Colors.lightGreen
+                                                      : Colors.redAccent,
                                               spreadRadius: 1),
                                         ],
                                       ),
                                       child: Text(
                                         status,
                                         style: TextStyle(
-                                            color: status == 'Sudah ditangani'
+                                            color: status == 'Bantuan diterima'
                                                 ? Colors.green[900]
                                                 : Colors.red[900],
                                             fontSize: 10.0),
@@ -103,7 +113,7 @@ class _ObrolanState extends State<Obrolan> {
                         subtitle: Row(
                           children: [
                             room['lastParticipant'] == widget.user!.uid
-                                ? room['isHospitalRead'] == true
+                                ? room['isUserRead'] == true
                                     ? const Icon(
                                         Icons.check,
                                         color: Colors.blue,
@@ -114,7 +124,7 @@ class _ObrolanState extends State<Obrolan> {
                                         color: Colors.grey,
                                         size: 18,
                                       )
-                                : room['isUserRead'] == true
+                                : room['isHospitalRead'] == true
                                     ? const SizedBox()
                                     : const Icon(
                                         Icons.notifications_rounded,
@@ -122,11 +132,11 @@ class _ObrolanState extends State<Obrolan> {
                                         size: 18,
                                       ),
                             room['lastMessage'] == 'You sent your history'
-                                ? Text(
-                                    room['lastMessage'],
+                                ? const Text(
+                                    'Patient sent a history',
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontStyle: FontStyle.italic,
                                     ),
@@ -149,7 +159,14 @@ class _ObrolanState extends State<Obrolan> {
                                   ),
                           ],
                         ),
-                        trailing: Text(formattedDate),
+                        trailing: room['lastParticipant'] == widget.user!.uid
+                            ? Text(formattedDate)
+                            : room['isHospitalRead'] == true
+                                ? Text(formattedDate)
+                                : Text(
+                                    formattedDate,
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(

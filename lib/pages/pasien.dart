@@ -45,6 +45,16 @@ class _PasienState extends State<Pasien> {
                   Map<String, dynamic> user = combinedData[index]['user'];
                   String formattedDate = DateFormat('dd/MM/yy')
                       .format(testHistory['createdAt'].toDate());
+                  final status = testHistory['status'] == 'a'
+                      ? 'Menunggu Persetujuan'
+                      : testHistory['status'] == 'b'
+                          ? 'Bantuan diterima'
+                          : '';
+                  if (status == '') {
+                    return const Center(
+                      child: SizedBox(),
+                    );
+                  }
                   return ListTile(
                     onTap: () => showDialog<String>(
                         context: context,
@@ -79,22 +89,21 @@ class _PasienState extends State<Pasien> {
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            color: testHistory['status'] == 'Sudah ditangani'
+                            color: status == 'Bantuan diterima'
                                 ? Colors.lightGreen[200]
                                 : Colors.red[200],
                             boxShadow: [
                               BoxShadow(
-                                  color:
-                                      testHistory['status'] == 'Sudah ditangani'
-                                          ? Colors.lightGreen
-                                          : Colors.redAccent,
+                                  color: status == 'Bantuan diterima'
+                                      ? Colors.lightGreen
+                                      : Colors.redAccent,
                                   spreadRadius: 1),
                             ],
                           ),
                           child: Text(
-                            '${testHistory['status']}',
+                            '${status}',
                             style: TextStyle(
-                              color: testHistory['status'] == 'Sudah ditangani'
+                              color: status == 'Bantuan diterima'
                                   ? Colors.green[900]
                                   : Colors.red[900],
                             ),

@@ -3,6 +3,7 @@ import 'package:covid_detection_hospital/pages/about.dart';
 import 'package:covid_detection_hospital/pages/home.dart';
 import 'package:covid_detection_hospital/pages/login.dart';
 import 'package:covid_detection_hospital/pages/profil.dart';
+import 'package:covid_detection_hospital/pages/register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,8 @@ class MyApp extends StatelessWidget {
       home: const AuthWrapper(),
       routes: {
         '/home': (context) => const Home(),
-        '/login': (context) => Login(),
+        '/login': (context) => const Login(),
+        '/register': (context) => const Register(),
         '/profile': (context) => const Profil(),
         '/about': (context) => const About(),
       },

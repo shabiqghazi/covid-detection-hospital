@@ -42,21 +42,21 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCCZIHSQd4-vGkQ58MSRAm0Jt_ysS3TCgw',
-    appId: '1:293905643672:web:e7ad9a39e34d71d70078ed',
+    appId: '1:293905643672:web:06c2d67d7f463e160078ed',
     messagingSenderId: '293905643672',
     projectId: 'covid-detection-9c949',
     authDomain: 'covid-detection-9c949.firebaseapp.com',
     databaseURL: 'https://covid-detection-9c949-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'covid-detection-9c949.appspot.com',
+    storageBucket: 'covid-detection-9c949.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDW2nmMYWuFm_yubeXaRI7KyM1hpPhN9UI',
-    appId: '1:293905643672:android:3a604b31bbacedd30078ed',
+    appId: '1:293905643672:android:d2a43b074ae2c99d0078ed',
     messagingSenderId: '293905643672',
     projectId: 'covid-detection-9c949',
     databaseURL: 'https://covid-detection-9c949-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'covid-detection-9c949.appspot.com',
+    storageBucket: 'covid-detection-9c949.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

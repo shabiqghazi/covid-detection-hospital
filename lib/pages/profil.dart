@@ -167,8 +167,9 @@ class _ProfilState extends State<Profil> {
               ElevatedButton(
                 onPressed: editMode
                     ? () {
-                        final User arguments =
-                            ModalRoute.of(context)?.settings.arguments as User;
+                        final String arguments = ModalRoute.of(context)
+                            ?.settings
+                            .arguments as String;
                         dynamic data = {
                           'name': _nameController.text,
                           'address': _addressController.text,
@@ -176,6 +177,9 @@ class _ProfilState extends State<Profil> {
                               GeoPoint(_location.latitude, _location.longitude)
                         };
                         AuthServices().updateProfile(arguments, data);
+                        setState(() {
+                          editMode = false;
+                        });
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Berhasil ubah profil'),

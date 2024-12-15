@@ -40,11 +40,12 @@ class _LoginState extends State<Login> {
                   Padding(
                     padding: const EdgeInsets.only(top: 40),
                     child: Text(
-                      "Cough Detection",
+                      "Cough Detection (Hospital)",
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.signika(
                         textStyle: const TextStyle(
                           color: Color(0xff01b399),
-                          fontSize: 40,
+                          fontSize: 32,
                           fontWeight: FontWeight.w700,
                         ),
                       ),

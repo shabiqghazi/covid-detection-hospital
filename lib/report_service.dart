@@ -18,8 +18,10 @@ class ReportService {
     try {
       QuerySnapshot querySnapshot = await _firestore
           .collection('reports')
-          .where(Filter.and(Filter('userId', isEqualTo: userId),
-              Filter('hospitalId', isEqualTo: hospitalId)))
+          .where(Filter.and(
+              Filter('userId', isEqualTo: userId),
+              Filter('hospitalId', isEqualTo: hospitalId),
+              Filter('status', isNotEqualTo: 'c')))
           .get();
       // List to hold combined data (test_history + user)
       if (querySnapshot.docs.isNotEmpty) {
@@ -32,7 +34,7 @@ class ReportService {
       rethrow;
     }
     // Get data from docs and convert them to List
-    return [];
+    throw Error();
   }
 
   Future<List<dynamic>> getDocs() async {

@@ -27,6 +27,7 @@ dependencies:
   http_parser: ^4.0.2
   cloud_firestore: ^5.4.1
   url_launcher: ^6.3.1
+  rename: ^3.0.2
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +43,5 @@ flutter:
     - images/rahmat.jpeg
     - images/shabiq.jpeg
     - images/yoss.jpeg
+    - images/zawil.jpeg
+    - images/armein.png
